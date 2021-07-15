@@ -26,7 +26,7 @@ import argparse
 
 def main():
 	q = Querie(
-		'files/data.csv', 
+		'files/mockup_data.csv', 
 		'Mockup', 
 		'files/file.sql', 
 		SQL_FORMAT.SQL_SERVER
