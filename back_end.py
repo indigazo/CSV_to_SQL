@@ -1,8 +1,10 @@
+''' Classes and global functions '''
 import csv
-import os
+from enum import Enum, auto
+from os import read
 
 # Si se puede cambiar a int retorna True, sino es falso
-def isInt(var):
+def is_int(var):
     try:
         int(var)
         return True
@@ -15,7 +17,7 @@ def row_count(f_name):
         return sum(1 for _ in in_file)
 
 # Escribe archivo de texto
-def writeInsert(f_name, t_name, out_name):
+def write_insert(f_name, t_name, out_name):
     with open(f_name) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=';')
         line_count = 0
@@ -48,7 +50,7 @@ def writeInsert(f_name, t_name, out_name):
                                 content += "null,"
                         else:
                             # Si no es un numero le pone comillas
-                            if isInt(row_data):
+                            if is_int(row_data):
                                 row_data = row_data
                             else:
                                 row_data = "'" + row_data + "'"
@@ -70,3 +72,79 @@ def writeInsert(f_name, t_name, out_name):
             print(error)
             return False
 
+
+class SQL_FORMAT(Enum):
+    SQL_SERVER = auto()
+    PGSQL = auto()
+
+class Querie():
+
+    data_rows = []
+    
+    def __init__(self, file : str, table_name : str, output_file : str, sql_format : Enum ) -> None:
+        self.file = file
+        self.table_name = table_name
+        self.output_file = output_file
+        self.sql_format = sql_format
+
+    def get_rows_from_file(self) -> list:
+        ''' Abrir archivo csv y extraer data en lista ''' 
+        with open(self.file, 'r', newline='') as file:
+            has_header = csv.Sniffer().has_header(file.read(1024))
+            file.seek(0)
+            
+            # NOTE: de momento solo envia lista vacia, tal vez enviar error?
+            if not has_header:
+                return []
+            
+            dialect= csv.Sniffer().sniff(file.read(), delimiters=',;')
+            file.seek(0)
+
+            reader = csv.reader(file, dialect)
+            self.data_rows = [ row for row in reader ]
+            return self.data_rows
+
+    def format(self, field : str):
+        if self.format == SQL_FORMAT.SQL_SERVER:
+            return f'[{field}]'
+        
+        elif self.format == SQL_FORMAT.PGSQL:
+             return f'"{field}"'
+    
+    def create_file_from_rows(self, rows) -> object:
+        ''' Create the .sql file using the correct format, returns bool as result  '''
+        if len(rows):
+            with open (self.output_file, 'w+') as of:
+                # get headers to use as column names
+                query_columns = ''
+                headers = rows[0]
+                for idx, head in enumerate(headers):
+                    query_columns += head + ', ' if idx != len(headers) - 1 else head
+                #print("query_columns", query_columns)
+
+                format(self.table_name) # ESta funcion deberia tomar el codigo de cada tipo para adaptarlo
+
+                query = f"INSERT INTO {self.table_name} ({query_columns}) VALUES\n"
+                #print('final_query so far:', final_query)
+                
+                values_string = ''
+                query_values = ''
+                for row_data in rows:
+                    if row_data == rows[0]: continue
+
+                    # TODO: Esto no maneja date types ni booleans ? probar ese tipo de casos
+                    # TODO: Aqui encapsular una funcion que revise todos los posibles data types
+                    for idx, value in enumerate(row_data): # da formato segun si es un int o string
+                        if idx != len(row_data) - 1:
+                            values_string += f"{value}," if is_int(value) else f"'{value}',"
+                        else:
+                            values_string += f"{value}," if is_int(value) else f"'{value}',"
+
+                    # BUG: Esto se esta sobrecargando en vez de hacer lo que deberia, revisar
+                    query_values += f'({values_string}),\n'    
+                    
+                final_query_string = query + query_values
+                of.write(final_query_string)
+                return of # Retorna el objeto file
+        else:
+            return None # Retorna un objeto nulo
