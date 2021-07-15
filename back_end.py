@@ -81,16 +81,16 @@ class Querie():
 
     data_rows = []
     
-    def __init__(self, file : str, table_name : str, output_file : str, sql_format : Enum ) -> None:
-        self.file = file
+    def __init__(self, file_name : str, table_name : str, output_file : str, sql_format : Enum ) -> None:
+        self.file_name = file_name
         self.table_name = table_name
         self.output_file = output_file
         self.sql_format = sql_format
 
     def get_rows_from_file(self) -> list:
         ''' Abrir archivo csv y extraer data en lista ''' 
-        with open(self.file, 'r', newline='') as file:
-            has_header = csv.Sniffer().has_header(file.read(1024))
+        with open(self.file_name, 'r', newline='') as file:
+            has_header = csv.Sniffer().has_header(file.read(2048))
             file.seek(0)
             
             # NOTE: de momento solo envia lista vacia, tal vez enviar error?
@@ -114,7 +114,7 @@ class Querie():
     def create_file_from_rows(self, rows) -> object:
         ''' Create the .sql file using the correct format, returns bool as result  '''
         if len(rows):
-            with open (self.output_file, 'w+') as of:
+            with open(self.output_file, 'w+') as of:
                 # get headers to use as column names
                 query_columns = ''
                 headers = rows[0]
