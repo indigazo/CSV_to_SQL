@@ -1,8 +1,9 @@
-from back_end import Querie, SQL_FORMAT
-from back_end import csv, write_insert
-from time import sleep
+import csv
 import os
 import argparse
+
+from back_end import Querie, SQL_FORMAT
+from time import sleep
 
 ### MAIN PROGRAM ###
 
@@ -24,6 +25,7 @@ import argparse
 # 	args=parser.parse_args()
 # 	args.func(args)
 
+# This is only proof of concept main, the final product uses argparse
 def main():
 	q = Querie(
 		'files/mockup_data.csv', 

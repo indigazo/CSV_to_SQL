@@ -1,5 +1,5 @@
 """ Usar este .py para Construir data falsa csv simple """
-from random import choice, randint, random
+from random import choice, randint
 import csv
 
 # BUG: NO DETECTA HEADERS el csv_to_sql al intentar leer el data dummy
