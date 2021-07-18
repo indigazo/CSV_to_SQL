@@ -2,8 +2,9 @@ import csv
 import os
 import argparse
 
-from back_end import Querie, SQL_FORMAT
+from back_end import *
 from time import sleep
+from pprint import pprint
 
 ### MAIN PROGRAM ###
 
@@ -25,29 +26,25 @@ from time import sleep
 # 	args=parser.parse_args()
 # 	args.func(args)
 
+
 # This is only proof of concept main, the final product uses argparse
 def main():
-	q = Querie(
-		'files/mockup_data.csv', 
-		'Mockup', 
-		'files/file.sql', 
-		SQL_FORMAT.SQL_SERVER
-	)
-	rows = q.get_rows_from_file()
-	if len(rows):
-		print(rows)
-		file = q.create_file_from_rows(rows)
-		
-		if file:
-			print(f"file {file} created")
-		
-		else:
-			#TODO: Manejar este error de manera mas elegante
-			print("Error archivo no creado") 
+    
+	def get_class(rows, file, key):
+		class_dict = {
+			SQL_FORMAT.SQL_SERVER : SQLServer(rows, file),
+			SQL_FORMAT.PGSQL : PGSQL(rows, file)
+		}
+		querie_class = class_dict.get(key)
+		return querie_class
+    
+    
+	file_rows = get_rows_from_file("test_files/MOCK_DATA.csv")
+	querie = get_class(file_rows, "output_files/cosa.sql", SQL_FORMAT.SQL_SERVER)
+	fo = querie.get_querie_file_object()
+	
+	print(fo)
 
-	else:
-		#TODO: Manejar este error de manera mas elegante
-		print("Este .csv no contiene headers")
 
 if __name__=="__main__":
 	main()
