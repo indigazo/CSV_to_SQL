@@ -3,16 +3,16 @@ import os
 import argparse
 
 from back_end import *
-from time import sleep
+import time
 from pprint import pprint
 
 # front end useful functions
-def get_class_from_dict(rows, file, table_name, key=SQL_FORMAT.SQL_SERVER):
+def get_class_from_dict(file, o_file, table_name, key=SQL_FORMAT.SQL_SERVER):
 	class_dict = {
-		SQL_FORMAT.SQL_SERVER : SQLServer(rows, file, table_name),
-		SQL_FORMAT.PGSQL : PGSQL(rows, file, table_name)
+		SQL_FORMAT.SQL_SERVER : SQLServer(file, o_file, table_name),
+		SQL_FORMAT.PGSQL : PGSQL(file, o_file, table_name)
 	}
-	return class_dict.get(key, SQLServer(rows, file, table_name))
+	return class_dict.get(key, SQLServer(file, o_file, table_name))
 
 ### MAIN PROGRAM ###
 
@@ -39,15 +39,16 @@ def main():
     
 
     
-	# file_rows = get_rows_from_file("test_files/MOCK_DATA.csv")
-	# QuerieClass = get_class_from_dict(file_rows, "output_files/cosa.sql", "Personas", SQL_FORMAT.PGSQL) # no final argument means SQL server
-	# fo = QuerieClass.get_querie_file_object()
-	FileRows = get_rows_from_file("test_files/MOCK_DATA.csv")
-	Querie = SQLServer(FileRows, "output_files/cosa.sql", "Personas")
-	FileObject = Querie.get_querie_file_object()
- 
- 
-	print(FileObject)
+    # class setup    
+	Querie = SQLServer(
+		"test_files/MOCK_DATA.csv", 
+  		"output_files/cosa.sql", 
+    	"Personas"
+	)
+	file_object = Querie.get_querie_file_object() 
+	print(file_object)
 
 if __name__=="__main__":
+	start_time = time.time()
 	main()
+	print("----Programa terminado en %s segundos" % (time.time() - start_time))

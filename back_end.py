@@ -28,38 +28,37 @@ def row_count(f_name):
     with open(f_name) as in_file:
         return sum(1 for _ in in_file)
 
-# Obtiene todas las rows en una lista desde un archivo
-def get_rows_from_file(file_name) -> list:
-    data_rows = []
-    with open(file_name, 'r', newline='') as file:
-        has_header = csv.Sniffer().has_header(file.read(2048))
-        file.seek(0)
-        
-        # NOTE: de momento solo envia lista vacia, tal vez enviar error?
-        if not has_header:
-            return []
-        
-        dialect = csv.Sniffer().sniff(file.read(), delimiters=',;')
-        file.seek(0)
-
-        # extract all the data on the file
-        reader = csv.reader(file, dialect)
-        data_rows = [ row for row in reader ]
-        return data_rows
-
 # Class to generate queries
 class Querie():
     
-    def __init__(self, rows : list, output_file_name : str, table_name : str) -> None:
-        self.rows = rows
+    def __init__(self, file : list, output_file_name : str, table_name : str) -> None:
+        self.file = file
         self.output_file_name = output_file_name
         self.table_name = table_name
     
     ''' Get the headers of the file on a list for easy use '''
-    def get_header_row(self) -> list:
-        if len(self.rows):
-            return [ h for h in self.rows[0] ] 
-    
+    def get_header_row(self, rows) -> list:
+        if len(rows):
+            return [ h for h in rows[0] ] 
+        
+    def get_rows_from_file(self) -> list:
+        data_rows = []
+        with open(self.file, 'r', newline='') as file:
+            has_header = csv.Sniffer().has_header(file.read(2048))
+            file.seek(0)
+            
+            # NOTE: de momento solo envia lista vacia, tal vez enviar error?
+            if not has_header:
+                return []
+            
+            dialect = csv.Sniffer().sniff(file.read(), delimiters=',;')
+            file.seek(0)
+
+            # extract all the data on the file
+            reader = csv.reader(file, dialect)
+            data_rows = [ row for row in reader ]
+            return data_rows
+        
     '''Checks if the string passed should be treated as a number, string, date or boolean (true, false)'''       
     def check_datatype(self, field : str) -> str:
         if field.lower() in ['true', 'false']:
@@ -80,12 +79,11 @@ class Querie():
     
     ''' Create the .sql file using the correct format, returns the file object or None  '''
     def get_querie_file_object(self) -> object:
+        data_rows = self.get_rows_from_file()
         
-        if len(self.rows):
-            query_setup = ""
-            query_values = ""
+        if len(data_rows):   
             query_header_fields = ""
-            header_fields = self.get_header_row()
+            header_fields = self.get_header_row(data_rows)
             
             with open(self.output_file_name, 'w+') as of:
                 
@@ -96,18 +94,35 @@ class Querie():
                 
                 query_setup = f"INSERT INTO {self.field_bracket_format(self.table_name)} ({query_header_fields}) VALUES\n"
                 
-                # values part
-                final = []
-                for idx, row in enumerate(self.rows):
-                    final.append(list(map(self.check_datatype, row)))
+                # devuelve una nueva lista con los datos ya formateados como corresponde 
+                formatted_rows = []
+                for idx, row in enumerate(data_rows):
+                    if idx != 0:
+                        formatted_rows.append(list(map(self.check_datatype, row)))
                 
-                pprint(query_setup)
+                close_chars = [",\n", ";"]
+                final = ""
+                
+                for data_rows in formatted_rows:
+                    new_row_to_add = ""
+                    for idx, row_el in enumerate(data_rows):
+                        new_row_to_add += f"{row_el}," if idx != len(data_rows) - 1 else f"{row_el}"
+                    final += f"{new_row_to_add}" 
+                
                 pprint(final)
+                
+                
+                
+                # query_value_row = f"({data}),"
+                # query_value_row = f"({data});"
+                
+                # pprint(query_setup)
+                # pprint(formatted_rows)
 
                 # for idx, row in enumerate(self.rows):
                 #     pprint(row)
 
-                return []
+                return ""
 
                 # format(self.table_name) # ESta funcion deberia tomar el codigo de cada tipo para adaptarlo
 
