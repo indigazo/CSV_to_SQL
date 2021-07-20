@@ -3,6 +3,8 @@ import csv
 from enum import Enum, auto
 from os import read
 
+# TODO: Separar a nivel de arquitectura el model (data), controler (back end) y view, todo lo que salga al client
+
 # Enum, might not use
 class SQL_FORMAT(Enum):
     SQL_SERVER  = auto()
