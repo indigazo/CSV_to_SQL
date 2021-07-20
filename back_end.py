@@ -3,6 +3,7 @@ import csv
 from enum import Enum, auto
 from os import read
 
+
 # Si se puede cambiar a int retorna True, sino es falso
 def is_int(var):
     try:
@@ -72,13 +73,13 @@ def write_insert(f_name, t_name, out_name):
             print(error)
             return False
 
-
 class SQL_FORMAT(Enum):
     SQL_SERVER = auto()
     PGSQL = auto()
 
-class Querie():
 
+class Querie():
+    
     data_rows = []
     
     def __init__(self, file_name : str, table_name : str, output_file : str, sql_format : Enum ) -> None:
@@ -89,20 +90,24 @@ class Querie():
 
     def get_rows_from_file(self) -> list:
         ''' Abrir archivo csv y extraer data en lista ''' 
-        with open(self.file_name, 'r', newline='') as file:
-            has_header = csv.Sniffer().has_header(file.read(2048))
-            file.seek(0)
+        try:
+            with open(self.file_name, 'r', newline='') as file:
+                has_header = csv.Sniffer().has_header(file.read(2048))
+                file.seek(0)
+                
+                # NOTE: de momento solo envia lista vacia, tal vez enviar error?
+                if not has_header:
+                    return []
             
-            # NOTE: de momento solo envia lista vacia, tal vez enviar error?
-            if not has_header:
-                return []
-            
-            dialect= csv.Sniffer().sniff(file.read(), delimiters=',;')
-            file.seek(0)
+                dialect= csv.Sniffer().sniff(file.read(), delimiters=',;')
+                file.seek(0)
 
-            reader = csv.reader(file, dialect)
-            self.data_rows = [ row for row in reader ]
-            return self.data_rows
+                reader = csv.reader(file, dialect)
+                self.data_rows = [ row for row in reader ]
+                return self.data_rows
+        except IOError as err:
+            print("ERROR:" + str(err)) # HACK: No es la mejor manera de hacer esto
+            return [] 
 
     def format(self, field : str):
         if self.format == SQL_FORMAT.SQL_SERVER:
@@ -120,13 +125,10 @@ class Querie():
                 headers = rows[0]
                 for idx, head in enumerate(headers):
                     query_columns += head + ', ' if idx != len(headers) - 1 else head
-                #print("query_columns", query_columns)
-
-                format(self.table_name) # ESta funcion deberia tomar el codigo de cada tipo para adaptarlo
-
+                    
+                format(self.table_name) # Esta funcion deberia tomar el codigo de cada tipo para adaptarlo
                 query = f"INSERT INTO {self.table_name} ({query_columns}) VALUES\n"
-                #print('final_query so far:', final_query)
-                
+
                 values_string = ''
                 query_values = ''
                 for row_data in rows:
@@ -141,7 +143,7 @@ class Querie():
                             values_string += f"{value}," if is_int(value) else f"'{value}',"
 
                     # BUG: Esto se esta sobrecargando en vez de hacer lo que deberia, revisar
-                    query_values += f'({values_string}),\n'    
+                query_values += f'({values_string}),\n'    
                     
                 final_query_string = query + query_values
                 of.write(final_query_string)

@@ -2,9 +2,9 @@ import csv
 import os
 import argparse
 
+from pprint import pprint
+import time
 from back_end import Querie, SQL_FORMAT
-from time import sleep
-
 ### MAIN PROGRAM ###
 
 # def run(args):
@@ -27,27 +27,34 @@ from time import sleep
 
 # This is only proof of concept main, the final product uses argparse
 def main():
+    
+	START_TIME = time.time() # for time measurements
+	def time_elapsed():
+		print("--- Program finished in %s seconds ---" % (time.time() - START_TIME))
+    
 	q = Querie(
-		'files/mockup_data.csv', 
+		'test_files/mockup_data.csv', 
 		'Mockup', 
 		'files/file.sql', 
 		SQL_FORMAT.SQL_SERVER
 	)
 	rows = q.get_rows_from_file()
 	if len(rows):
-		print(rows)
 		file = q.create_file_from_rows(rows)
-		
+
 		if file:
-			print(f"file {file} created")
-		
+			print(f"file 'files/file.sql' created")
+			time_elapsed()		
+
 		else:
 			#TODO: Manejar este error de manera mas elegante
-			print("Error archivo no creado") 
+			print("Error archivo no creado")
+			time_elapsed()
 
 	else:
 		#TODO: Manejar este error de manera mas elegante
-		print("Este .csv no contiene headers")
+		print("Ocurrio un error obteniendo las rows")
+		time_elapsed()
 
 if __name__=="__main__":
 	main()
