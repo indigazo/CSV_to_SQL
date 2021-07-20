@@ -1,5 +1,5 @@
 # the contents of the files. FOR NOW, later I might add a test csv
-files/*
+output_files/*
 test_files/*
 
 # Byte-compiled / optimized / DLL files

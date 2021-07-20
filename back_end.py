@@ -2,6 +2,7 @@
 import csv
 from enum import Enum, auto
 from os import read
+from pprint import pprint
 
 # TODO: Separar a nivel de arquitectura el model (data), controler (back end) y view, todo lo que salga al client
 
@@ -49,9 +50,10 @@ def get_rows_from_file(file_name) -> list:
 # Class to generate queries
 class Querie():
     
-    def __init__(self, rows : list, output_file_name : str) -> None:
+    def __init__(self, rows : list, output_file_name : str, table_name : str) -> None:
         self.rows = rows
         self.output_file_name = output_file_name
+        self.table_name = table_name
     
     ''' Get the headers of the file on a list for easy use '''
     def get_header_row(self) -> list:
@@ -59,33 +61,52 @@ class Querie():
             return [ h for h in self.rows[0] ] 
     
     '''Checks if the string passed should be treated as a number, string, date or boolean (true, false)'''       
-    def check_datatype(field : str) -> str:
+    def check_datatype(self, field : str) -> str:
         if field.lower() in ['true', 'false']:
             return field.lower()
-        elif is_num_type(field, float):
-            return float(field)
+        
         elif is_num_type(field, int):
             return int(field)
+        
+        elif is_num_type(field, float):
+            return float(field)
+        
         else:
             return field # is most likely a string
     
-    def field_format(self, field : str) -> str:
+    ''' Each instance of this class should override this method, it formats a field with the correct bracket type '''
+    def field_bracket_format(self, field : str) -> str:
         pass
     
     ''' Create the .sql file using the correct format, returns the file object or None  '''
     def get_querie_file_object(self) -> object:
         
         if len(self.rows):
-            querie_header_fields = ""
+            query_setup = ""
+            query_values = ""
+            query_header_fields = ""
             header_fields = self.get_header_row()
             
             with open(self.output_file_name, 'w+') as of:
-                    
-                # get headers to use as column names
-                for idx, head in enumerate(header_fields):
-                    querie_header_fields += head + ', ' if idx != len(header_fields) - 1 else head
                 
-                return querie_header_fields
+                # setup first part 
+                for idx, head in enumerate(header_fields):
+                    head = self.field_bracket_format(head)
+                    query_header_fields += head + ', ' if idx != len(header_fields) - 1 else head
+                
+                query_setup = f"INSERT INTO {self.field_bracket_format(self.table_name)} ({query_header_fields}) VALUES\n"
+                
+                # values part 
+                for idx, row in enumerate(self.rows):
+                    new_list = map(self.check_datatype, row)
+                
+                pprint(query_setup)
+                pprint(list(new_list))
+
+                # for idx, row in enumerate(self.rows):
+                #     pprint(row)
+
+                return []
 
                 # format(self.table_name) # ESta funcion deberia tomar el codigo de cada tipo para adaptarlo
 
@@ -116,12 +137,12 @@ class Querie():
 
 class SQLServer(Querie):
     
-    def field_format(self, field : str):
+    def field_bracket_format(self, field : str):
         checked_field = self.check_datatype(field)
         return f'[{checked_field}]' # Default is SQL server
 
 class PGSQL(Querie):
 
-    def field_format(self, field : str):
+    def field_bracket_format(self, field : str):
         checked_field = self.check_datatype(field)
         return f'"{checked_field}"' # Default is SQL server

@@ -6,6 +6,14 @@ from back_end import *
 from time import sleep
 from pprint import pprint
 
+# front end useful functions
+def get_class_from_dict(rows, file, table_name, key=SQL_FORMAT.SQL_SERVER):
+	class_dict = {
+		SQL_FORMAT.SQL_SERVER : SQLServer(rows, file, table_name),
+		SQL_FORMAT.PGSQL : PGSQL(rows, file, table_name)
+	}
+	return class_dict.get(key, SQLServer(rows, file, table_name))
+
 ### MAIN PROGRAM ###
 
 # def run(args):
@@ -29,18 +37,17 @@ from pprint import pprint
 # This is only proof of concept main, the final product uses argparse
 def main():
     
-	def get_class(rows, file, key):
-		class_dict = {
-			SQL_FORMAT.SQL_SERVER : SQLServer(rows, file),
-			SQL_FORMAT.PGSQL : PGSQL(rows, file)
-		}
-		querie_class = class_dict.get(key, SQLServer(rows, file))
-		return querie_class
+
     
-	file_rows = get_rows_from_file("test_files/MOCK_DATA.csv")
-	querie = get_class(file_rows, "output_files/cosa.sql", SQL_FORMAT.SQL_SERVER)
-	fo = querie.get_querie_file_object()
-	print(fo)
+	# file_rows = get_rows_from_file("test_files/MOCK_DATA.csv")
+	# QuerieClass = get_class_from_dict(file_rows, "output_files/cosa.sql", "Personas", SQL_FORMAT.PGSQL) # no final argument means SQL server
+	# fo = QuerieClass.get_querie_file_object()
+	FileRows = get_rows_from_file("test_files/MOCK_DATA.csv")
+	Querie = SQLServer(FileRows, "output_files/cosa.sql", "Personas")
+	FileObject = Querie.get_querie_file_object()
+ 
+ 
+	print(FileObject)
 
 if __name__=="__main__":
 	main()
