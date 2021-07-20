@@ -26,7 +26,6 @@ from pprint import pprint
 # 	args=parser.parse_args()
 # 	args.func(args)
 
-
 # This is only proof of concept main, the final product uses argparse
 def main():
     
@@ -35,16 +34,13 @@ def main():
 			SQL_FORMAT.SQL_SERVER : SQLServer(rows, file),
 			SQL_FORMAT.PGSQL : PGSQL(rows, file)
 		}
-		querie_class = class_dict.get(key)
+		querie_class = class_dict.get(key, SQLServer(rows, file))
 		return querie_class
-    
     
 	file_rows = get_rows_from_file("test_files/MOCK_DATA.csv")
 	querie = get_class(file_rows, "output_files/cosa.sql", SQL_FORMAT.SQL_SERVER)
 	fo = querie.get_querie_file_object()
-	
 	print(fo)
-
 
 if __name__=="__main__":
 	main()
