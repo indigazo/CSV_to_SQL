@@ -2,9 +2,10 @@ import csv
 import os
 import argparse
 
+from back_end import *
+from time import sleep
 from pprint import pprint
-import time
-from back_end import Querie, SQL_FORMAT
+
 ### MAIN PROGRAM ###
 
 # def run(args):
@@ -28,33 +29,18 @@ from back_end import Querie, SQL_FORMAT
 # This is only proof of concept main, the final product uses argparse
 def main():
     
-	START_TIME = time.time() # for time measurements
-	def time_elapsed():
-		print("--- Program finished in %s seconds ---" % (time.time() - START_TIME))
+	def get_class(rows, file, key):
+		class_dict = {
+			SQL_FORMAT.SQL_SERVER : SQLServer(rows, file),
+			SQL_FORMAT.PGSQL : PGSQL(rows, file)
+		}
+		querie_class = class_dict.get(key, SQLServer(rows, file))
+		return querie_class
     
-	q = Querie(
-		'test_files/mockup_data.csv', 
-		'Mockup', 
-		'files/file.sql', 
-		SQL_FORMAT.SQL_SERVER
-	)
-	rows = q.get_rows_from_file()
-	if len(rows):
-		file = q.create_file_from_rows(rows)
-
-		if file:
-			print(f"file 'files/file.sql' created")
-			time_elapsed()		
-
-		else:
-			#TODO: Manejar este error de manera mas elegante
-			print("Error archivo no creado")
-			time_elapsed()
-
-	else:
-		#TODO: Manejar este error de manera mas elegante
-		print("Ocurrio un error obteniendo las rows")
-		time_elapsed()
+	file_rows = get_rows_from_file("test_files/MOCK_DATA.csv")
+	querie = get_class(file_rows, "output_files/cosa.sql", SQL_FORMAT.SQL_SERVER)
+	fo = querie.get_querie_file_object()
+	print(fo)
 
 if __name__=="__main__":
 	main()
