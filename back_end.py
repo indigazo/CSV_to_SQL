@@ -96,12 +96,13 @@ class Querie():
                 
                 query_setup = f"INSERT INTO {self.field_bracket_format(self.table_name)} ({query_header_fields}) VALUES\n"
                 
-                # values part 
+                # values part
+                final = []
                 for idx, row in enumerate(self.rows):
-                    new_list = map(self.check_datatype, row)
+                    final.append(list(map(self.check_datatype, row)))
                 
                 pprint(query_setup)
-                pprint(list(new_list))
+                pprint(final)
 
                 # for idx, row in enumerate(self.rows):
                 #     pprint(row)
