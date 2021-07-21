@@ -1,8 +1,6 @@
 ''' Classes and global functions '''
 import csv
 from enum import Enum, auto
-from os import close, read
-from pprint import pprint
 
 # TODO: Separar a nivel de arquitectura el model (data), controler (back end) y view, todo lo que salga al client
 
