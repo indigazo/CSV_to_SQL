@@ -28,6 +28,14 @@ def row_count(f_name):
     with open(f_name) as in_file:
         return sum(1 for _ in in_file)
 
+# front end useful functions
+def get_class_from_dict(file, o_file, table_name, key=SQL_FORMAT.SQL_SERVER):
+	class_dict = {
+		SQL_FORMAT.SQL_SERVER : SQLServer(file, o_file, table_name),
+		SQL_FORMAT.PGSQL : PGSQL(file, o_file, table_name)
+	}
+	return class_dict.get(key, SQLServer(file, o_file, table_name))
+
 # Class to generate queries
 class Querie():
     
@@ -59,22 +67,13 @@ class Querie():
             data_rows = [ row for row in reader ]
             return data_rows
         
-    '''Checks if the string passed should be treated as a number, string, date or boolean (true, false)'''       
-    def check_datatype(self, field : str) -> str:
-        if field.lower() in ['true', 'false']:
-            return field.lower()
-        
-        elif is_num_type(field, int):
-            return int(field)
-        
-        elif is_num_type(field, float):
-            return float(field)
-        
-        else:
-            return field # is most likely a string
-    
-    ''' Each instance of this class should override this method, it formats a field with the correct bracket type '''
+    ''' It formats a field with the correct bracket type '''
     def field_bracket_format(self, field : str) -> str:
+        pass
+
+    # TODO: Implementar esta funcion en cada instancia que la llame
+    '''Checks if the string passed should be treated as a number, string, date or boolean (true, false)'''       
+    def format_field(self, field : str) -> str:
         pass
     
     ''' Create the .sql file using the correct format, returns the file object or None  '''
@@ -95,7 +94,7 @@ class Querie():
                 query_setup = f"INSERT INTO {self.field_bracket_format(self.table_name)} ({query_header_fields}) VALUES\n"
                 
                 # devuelve una nueva lista con los datos ya formateados como corresponde 
-                formatted_rows = [ list(map(self.check_datatype, row)) for idx, row in enumerate(data_rows) if idx != 0 ]
+                formatted_rows = [ list(map(self.format_field, row)) for idx, row in enumerate(data_rows) if idx != 0 ]
                 close_chars = [",\n", ";"]
                 final_query_string = query_setup
                 
@@ -114,12 +113,42 @@ class Querie():
 
 class SQLServer(Querie):
     
+    # NOTE: Esta logica es temporal y experimental, probablemente lo implemente de manera distinta 
+    def format_field(self, field) -> str:
+        if field.upper() in ['TRUE', 'FALSE']:
+            return field.upper()
+        
+        elif is_num_type(field, int):
+            return int(field)
+        
+        elif is_num_type(field, float):
+            return float(field)
+        
+        # TODO : Falta el formato para fecha
+        
+        else:
+            return field.replace("'", " ") # is most likely a string
+    
     def field_bracket_format(self, field : str):
-        checked_field = self.check_datatype(field)
+        checked_field = self.format_field(field)
         return f'[{checked_field}]' # Default is SQL server
 
 class PGSQL(Querie):
 
+    # NOTE: Esta logica es temporal y experimental, probablemente lo implemente de manera distinta 
+    def format_field(self, field) -> str:
+        if field.upper() in ['TRUE', 'FALSE']:
+            return field.upper()
+        
+        elif is_num_type(field, int):
+            return int(field)
+        
+        elif is_num_type(field, float):
+            return float(field)
+        
+        else:
+            return field.replace("'", " ") # is most likely a string
+    
     def field_bracket_format(self, field : str):
-        checked_field = self.check_datatype(field)
+        checked_field = self.format_field(field)
         return f'"{checked_field}"' # Default is SQL server
