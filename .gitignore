@@ -13,3 +13,6 @@ __pycache__/
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
+
+# Hasta que no este listo el readme o sea necesario, lo mantendre en el ignore 
+README.md
