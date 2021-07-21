@@ -36,19 +36,24 @@ def get_class_from_dict(file, o_file, table_name, key=SQL_FORMAT.SQL_SERVER):
 
 # This is only proof of concept main, the final product uses argparse
 def main():
-    
 
-    
-    # class setup    
-	Querie = SQLServer(
+    # class setup
+	Q = get_class_from_dict(
 		"test_files/MOCK_DATA.csv", 
   		"output_files/cosa.sql", 
-    	"Personas"
+    	"Personas",
+		SQL_FORMAT.SQL_SERVER
 	)
-	file_object = Querie.get_querie_file_object() 
-	print(file_object)
+	result = Q.generate_sql_file() 
+
+	if result:
+		print(f"Archivo 'output_files/cosa.sql' creado")
+	else:
+		print("No existian rows para generar archivo SQL")
 
 if __name__=="__main__":
 	start_time = time.time()
+	
 	main()
-	print("----Programa terminado en %s segundos" % (time.time() - start_time))
+	
+	print("** Programa terminado en %s segundos **" % (time.time() - start_time))

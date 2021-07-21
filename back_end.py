@@ -1,7 +1,7 @@
 ''' Classes and global functions '''
 import csv
 from enum import Enum, auto
-from os import read
+from os import close, read
 from pprint import pprint
 
 # TODO: Separar a nivel de arquitectura el model (data), controler (back end) y view, todo lo que salga al client
@@ -78,7 +78,7 @@ class Querie():
         pass
     
     ''' Create the .sql file using the correct format, returns the file object or None  '''
-    def get_querie_file_object(self) -> object:
+    def generate_sql_file(self) -> bool:
         data_rows = self.get_rows_from_file()
         
         if len(data_rows):   
@@ -95,61 +95,22 @@ class Querie():
                 query_setup = f"INSERT INTO {self.field_bracket_format(self.table_name)} ({query_header_fields}) VALUES\n"
                 
                 # devuelve una nueva lista con los datos ya formateados como corresponde 
-                formatted_rows = []
-                for idx, row in enumerate(data_rows):
-                    if idx != 0:
-                        formatted_rows.append(list(map(self.check_datatype, row)))
-                
+                formatted_rows = [ list(map(self.check_datatype, row)) for idx, row in enumerate(data_rows) if idx != 0 ]
                 close_chars = [",\n", ";"]
-                final = ""
+                final_query_string = query_setup
                 
-                for data_rows in formatted_rows:
+                for d_idx, data_rows in enumerate(formatted_rows):
                     new_row_to_add = ""
                     for idx, row_el in enumerate(data_rows):
                         new_row_to_add += f"{row_el}," if idx != len(data_rows) - 1 else f"{row_el}"
-                    final += f"{new_row_to_add}" 
-                
-                pprint(final)
-                
-                
-                
-                # query_value_row = f"({data}),"
-                # query_value_row = f"({data});"
-                
-                # pprint(query_setup)
-                # pprint(formatted_rows)
-
-                # for idx, row in enumerate(self.rows):
-                #     pprint(row)
-
-                return ""
-
-                # format(self.table_name) # ESta funcion deberia tomar el codigo de cada tipo para adaptarlo
-
-                # query = f"INSERT INTO {self.table_name} ({query_columns}) VALUES\n"
-                # #print('final_query so far:', final_query)
-                
-                # values_string = ''
-                # query_values = ''
-                # for row_data in rows:
-                #     if row_data == rows[0]: continue
-
-                #     # TODO: Esto no maneja date types ni booleans ? probar ese tipo de casos
-                #     # TODO: Aqui encapsular una funcion que revise todos los posibles data types
-                #     for idx, value in enumerate(row_data): # da formato segun si es un int o string
-                #         if idx != len(row_data) - 1:
-                #             values_string += f"{value}," if is_int(value) else f"'{value}',"
-                #         else:
-                #             values_string += f"{value}" if is_int(value) else f"'{value}'"
-
-                #     # BUG: Esto se esta sobrecargando en vez de hacer lo que deberia, revisar
-                #     query_values += f'({values_string}),\n'    
                     
-                # final_query_string = query + query_values
-                # of.write(final_query_string)
-                # return of # Retorna el objeto file
+                    f_char = close_chars[1] if d_idx == (len(formatted_rows) - 1) else close_chars[0]
+                    final_query_string += f"({new_row_to_add})" + f_char
+                
+                of.write(final_query_string)
+                return True
         else:
-            return None # Retorna un objeto nulo
+            return False # Retorna un objeto nulo
 
 class SQLServer(Querie):
     
